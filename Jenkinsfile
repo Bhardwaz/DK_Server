@@ -21,16 +21,7 @@ pipeline {
 
         stage('Backend Build & Test') {
             steps {
-                withEnv([
-            "PORT=${PORT}",
-            "AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}",
-            "AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}",
-            "AWS_REGION=${AWS_REGION}",
-            "S3_BUCKET=${S3_BUCKET}",
-            "TOKEN_SECRET=${TOKEN_SECRET}",
-            "MONGODB_URI=${MONGODB_URI}",
-            "FRONTEND_SERVICE_ORIGIN=${FRONTEND_SERVICE_ORIGIN}"
-        ]) {
+                 {
                     echo 'Installing backend dependencies...'
                     sh 'npm install'
 
