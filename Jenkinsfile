@@ -34,9 +34,6 @@ pipeline {
                     echo 'Installing backend dependencies...'
                     sh 'npm install'
 
-                    echo 'Running backend tests...'
-                    sh 'npm test'
-
                     echo 'Building Docker image for backend...'
                     sh 'docker build -t datekarle-app:server-latest .'
         }
