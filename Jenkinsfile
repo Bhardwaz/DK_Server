@@ -19,15 +19,13 @@ pipeline {
             }
         }
 
-        stage('Backend Build & Test') {
+        stage('Backend Build') {
             steps {
-                 {
                     echo 'Installing backend dependencies...'
                     sh 'npm install'
 
                     echo 'Building Docker image for backend...'
                     sh 'docker build -t datekarle-app:server-latest .'
-        }
             }
         }
     }
