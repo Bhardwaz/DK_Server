@@ -21,7 +21,7 @@ router.post("/signin", async(req, res) => {
 
       res.cookie("token", token, {
         httpOnly:true,
-        secure:true,
+        secure:false,
         sameSite:"strict",
         expires: new Date(Date.now() + 48 * 3600000),
       })
