@@ -2,10 +2,6 @@ const jwt = require("jsonwebtoken");
 const User = require("../models/user_model");
 
 async function userAuth(req, res, next) {
-  // In your middleware
-  console.log("Headers:", req.headers);
-  console.log("Token from header:", req.headers.authorization);
-  console.log("Cookies:", req.cookies);
   try {
     const { token } = req.cookies;
     if (!token) {
@@ -13,6 +9,10 @@ async function userAuth(req, res, next) {
         .status(401)
         .json({ message: "Access denied. No token provided." });
     }
+
+    console.log("Headers:", req.headers);
+    console.log("Token from header:", req.headers.authorization);
+    console.log("Cookies:", req.cookies);
 
     const decodedObj = await jwt.verify(token, process.env.TOKEN_SECRET);
     const { _id } = decodedObj;
