@@ -3,7 +3,7 @@ const User = require("../models/user_model");
 
 async function userAuth(req, res, next) {
   try {
-    const { token } = req.cookies;
+    const { token } = req.cookies || req.headers.authorization;
     
     console.log("Headers:", req.headers);
     console.log("Token from header:", req.headers.authorization);
