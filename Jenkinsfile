@@ -1,3 +1,4 @@
+/* groovylint-disable-next-line CompileStatic */
 pipeline {
     agent any
 
@@ -21,31 +22,29 @@ pipeline {
 
         stage('Backend Build') {
             steps {
-                    echo 'Installing backend dependencies...'
-                    sh 'npm install'
+                echo 'Installing backend dependencies...'
+                sh 'npm install'
 
-                    echo 'Building Docker image for backend...'
-                    sh 'docker build -t datekarle-app:server-latest .'
+                echo 'Building Docker image for backend...'
+                sh 'docker build -t datekarle-app:server-latest .'
             }
         }
 
         stage('Run Backend Container') {
             steps {
-                    sh """
-        docker rm -f backend-container || true
-        docker run -d -p 4001:4001 \
-          -e PORT=${PORT} \
-          -e MONGODB_URI=${MONGODB_URI} \
-          -e TOKEN_SECRET=${TOKEN_SECRET} \
-          -e AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID} \
-          -e AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} \
-          -e AWS_REGION=${AWS_REGION} \
-          -e S3_BUCKET=${S3_BUCKET} \
-          -e FRONTEND_SERVICE_ORIGIN=${FRONTEND_SERVICE_ORIGIN} \
-          --name backend-container \
-          datekarle-app:server-latest
-        """
+                sh 'docker rm -f backend-container || true'
+                sh '''docker run -d -p 4001:4001 \\
+                  -e PORT=$PORT \\
+                  -e MONGODB_URI="$MONGODB_URI" \\
+                  -e TOKEN_SECRET="$TOKEN_SECRET" \\
+                  -e AWS_ACCESS_KEY_ID="$AWS_ACCESS_KEY_ID" \\
+                  -e AWS_SECRET_ACCESS_KEY="$AWS_SECRET_ACCESS_KEY" \\
+                  -e AWS_REGION="$AWS_REGION" \\
+                  -e S3_BUCKET="$S3_BUCKET" \\
+                  -e FRONTEND_SERVICE_ORIGIN="$FRONTEND_SERVICE_ORIGIN" \\
+                  --name backend-container \\
+                  datekarle-app:server-latest'''
+            }
+        }
     }
-}
-}
 }
