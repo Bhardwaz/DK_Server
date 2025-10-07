@@ -4,28 +4,6 @@ const { userAuth } = require("../middleware/userAuth")
 const ConnectionRequest = require("../models/connectionRequest_model")
 const User = require("../models/user_model")
 
-// Getting all the Pending request
-
-router.get("/user/requests/received", userAuth, async (req, res) => {
-     try {
-        const loggedInUser = req.user
-        
-        const connectionRequest = await ConnectionRequest.find({
-          toUserId: loggedInUser._id,
-          status: 'interested'
-        }).populate("fromUserId", "-password -desiredAgeRange -email -interestIn")
-        
-        return res.status(200).json({
-            data: connectionRequest,
-            message: "success"
-        })
-
-     } catch (error) {
-        console.log(error);
-        return res.status(400).send(error.message)
-     }
-})
-
 router.get("/user/connections", userAuth, async (req, res) => {
      try {
         const loggedInUser = req.user
@@ -56,10 +34,10 @@ router.get("/user/connections", userAuth, async (req, res) => {
 
 router.get("/user/feed", userAuth, async (req, res) => {
       try {
-        const loggedInUserId = req.user._id
+        const currentUserId = req.user._id
          
         // getting loggedin user info
-        const loggedInUser = await User.findById(loggedInUserId)
+        const loggedInUser = await User.findById(currentUserId)
         const preferences = loggedInUser.interestIn;
 
         // finding all users involved in connection requests
@@ -89,7 +67,7 @@ router.get("/user/feed", userAuth, async (req, res) => {
         res.json(feedUsers);
     } catch (error) {
         console.log(error);
-         res.status(500).json({ error: 'Failed to load feed' });
+         res.status(500).json({ error: 'Failed to load feed. coming over there' });
       }
 })
 

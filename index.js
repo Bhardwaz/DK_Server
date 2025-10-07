@@ -1,5 +1,5 @@
-const dotenv = require('dotenv')
-dotenv.config()
+const dotenv = require("dotenv");
+dotenv.config();
 const connectingToDatabase = require("./src/config/database.js");
 const express = require("express");
 const app = express();
@@ -10,7 +10,7 @@ const connectionRequestRouter = require("./src/routes/request_router.js");
 const userRouter = require("./src/routes/user_router.js");
 const chatRouter = require("./src/routes/chat_router.js");
 const feedRouter = require("./src/routes/feed_router.js");
-const preSignedUrlRouter = require("./src/routes/upload_router.js")
+const preSignedUrlRouter = require("./src/routes/upload_router.js");
 const messageRouter = require("./src/routes/message_router.js");
 const cookieParser = require("cookie-parser");
 const cors = require("cors");
@@ -18,16 +18,71 @@ const { Server } = require("socket.io");
 const Chat = require("./src/models/chat_model.js");
 const Message = require("./src/models/message_model.js");
 const handlingPendingMesssages = require("./src/utils/handlingPendingMessages.js");
+const rateLimit = require("express-rate-limit");
+const { default: helmet } = require("helmet");
+const mongoSanitize = require("express-mongo-sanitize");
+const hpp = require("hpp");
+const logger = require("./logger.js")
+const morgan = require("morgan")
 
-
-const server = createServer(app);
-const io = new Server(server, {
-  cors: { origin: process.env.FRONTEND_SERVICE_ORIGIN, credentials: true },
+const morganFormat = ":method :url :status :response-time ms";
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 100,
+  message: "Too many requests from this IP. Please try later",
 });
 
-app.use(cors({ origin: process.env.FRONTEND_SERVICE_ORIGIN, credentials: true }));
+app.use((req, res, next) => {
+  Object.defineProperty(req, 'query', {
+    ...Object.getOwnPropertyDescriptor(req, 'query'),
+    value: req.query,
+    writable: true,
+  });
+  next();
+});
+
+app.use(
+  morgan(morganFormat, {
+    stream: {
+      write: (message) => {
+        const logObject = {
+          method: message.split(" ")[0],
+          url: message.split(" ")[1],
+          status: message.split(" ")[2],
+          responseTime: message.split(" ")[3],
+        };
+        logger.info(JSON.stringify(logObject));
+      },
+    },
+  })
+);
+
+const server = createServer(app);
+const corsOptions = {
+  origin: process.env.FRONTEND_SERVICE_ORIGIN,
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS"],
+  allowedHeaders: [
+    "Content-Type",
+    "Authorization",
+    "X-Requested-With",
+    "device-remember-token",
+    "Access-Control-Allow-Origin",
+    "Origin",
+    "Accept",
+  ],
+};
+
+const io = new Server(server, { cors: corsOptions });
+app.use(cors(corsOptions));
 app.use(cookieParser());
 app.use(express.json());
+
+// security middleware -- rate limiter
+app.use("/", limiter);
+app.use(helmet());
+app.use(mongoSanitize())
+app.use(hpp());
 
 // routers
 app.use("/", authRouter);
@@ -37,7 +92,7 @@ app.use("/", userRouter);
 app.use("/", feedRouter);
 app.use("/", chatRouter);
 app.use("/", messageRouter);
-app.use('/', preSignedUrlRouter)
+app.use("/", preSignedUrlRouter);
 
 const users = new Map();
 const activeChats = new Map();
@@ -54,7 +109,7 @@ io.on("connection", (socket) => {
 
   socket.on("register", async (sender) => {
     users.set(sender, socket.id);
-    io.to(sender).emit("user:online", { sender, online:true })
+    io.to(sender).emit("user:online", { sender, online: true });
 
     const { senders, pendingMessages } = await handlingPendingMesssages(sender);
 
@@ -109,29 +164,29 @@ io.on("connection", (socket) => {
 
       const targetSocketId = users.get(targetUserId);
       const senderSocketId = users.get(sender);
- 
-      const seeing = activeChats.get(targetUserId)
-      const cid = chat._id.toString()
-      
-      if (targetSocketId && !seeing) {  
+
+      const seeing = activeChats.get(targetUserId);
+      const cid = chat._id.toString();
+
+      if (targetSocketId && !seeing) {
         io.to(targetSocketId).emit("chat:receive", {
           ...newMessage.toObject(),
           tempId,
           status: "delivered",
           unreadCount: chat.unreadCount,
-          seeing: false
+          seeing: false,
         });
       }
 
-      if(targetSocketId && seeing === cid){
+      if (targetSocketId && seeing === cid) {
         io.to(targetSocketId).emit("chat:receive", {
           ...newMessage.toObject(),
           tempId,
           status: "read",
-          seeing: true
+          seeing: true,
         });
-      chat.unreadCount = 0
-      await chat.save()
+        chat.unreadCount = 0;
+        await chat.save();
       }
 
       if (senderSocketId && !targetSocketId) {
@@ -155,7 +210,7 @@ io.on("connection", (socket) => {
     "chat:delivered",
     async ({ tempId, chat, messageId, sender, receiver, seeing }) => {
       const senderSocket = users.get(sender);
-      let status = seeing ? "read" : "delivered"
+      let status = seeing ? "read" : "delivered";
       try {
         await Message.findByIdAndUpdate(messageId, { status });
         if (senderSocket) {
@@ -181,7 +236,7 @@ io.on("connection", (socket) => {
 
   socket.on("chat:active", async ({ chat, reader }) => {
     if (!activeChats.has(reader)) activeChats.set(reader, chat);
-    
+
     try {
       const readMessages = await Message.find({
         chat,
@@ -194,21 +249,21 @@ io.on("connection", (socket) => {
         { $set: { status: "read" } }
       );
 
-      const chatDoc = await Chat.findById(chat)
+      const chatDoc = await Chat.findById(chat);
       chatDoc.unreadCount = 0;
       chatDoc.lastMessage.status = "read";
       await chatDoc.save();
 
       readMessages.forEach((msg) => {
-        const id = msg.sender.toString()
+        const id = msg.sender.toString();
         const senderSocket = users.get(id);
         if (senderSocket) {
           io.to(senderSocket).emit("chat:status", {
             tempId: "notExist",
             chat,
             messageId: msg._id,
-            sender:msg.sender,
-            receiver:msg.receiver,
+            sender: msg.sender,
+            receiver: msg.receiver,
             status: "read",
           });
         }
@@ -219,15 +274,17 @@ io.on("connection", (socket) => {
   });
 
   socket.on("chat:inactive", ({ chat, reader }) => {
-    if(activeChats.has(reader)){
-      activeChats.delete(reader)
+    if (activeChats.has(reader)) {
+      activeChats.delete(reader);
     }
-  })
+  });
 });
 
 connectingToDatabase()
   .then(() => {
     console.log("connected to database");
-    server.listen(process.env.PORT, () => console.log(`Listening on ${process.env.PORT}`));
+    server.listen(process.env.PORT, () =>
+      console.log(`Listening on ${process.env.PORT}`)
+    );
   })
   .catch((err) => console.error("DB Connection Error:", err));
