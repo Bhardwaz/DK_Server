@@ -1,6 +1,5 @@
 const dotenv = require("dotenv");
 dotenv.config();
-const connectingToDatabase = require("./src/config/database.js");
 const express = require("express");
 const app = express();
 const { createServer } = require("http");
@@ -23,7 +22,8 @@ const { default: helmet } = require("helmet");
 const mongoSanitize = require("express-mongo-sanitize");
 const hpp = require("hpp");
 const logger = require("./logger.js")
-const morgan = require("morgan")
+const morgan = require("morgan");
+const { connectingToDatabase } = require("./src/config/database.js");
 
 const morganFormat = ":method :url :status :response-time ms";
 const limiter = rateLimit({
@@ -282,7 +282,6 @@ io.on("connection", (socket) => {
 
 connectingToDatabase()
   .then(() => {
-    console.log("connected to database");
     server.listen(process.env.PORT, () =>
       console.log(`Listening on ${process.env.PORT}`)
     );
