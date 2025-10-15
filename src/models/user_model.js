@@ -10,9 +10,16 @@ const User = new mongoose.Schema(
       require: true,
       minLength: 3,
       maxLength: 20,
+      trim: true,
+      set: v => v.charAt(0).toUpperCase() + v.slice(1).toLowerCase(),
     },
     lastName: {
       type: String,
+      require: true,
+      minLength: 3,
+      maxLength: 20,
+      trim: true,
+      set: v => v.charAt(0).toUpperCase() + v.slice(1).toLowerCase(),
     },
     email: {
       type: String,
@@ -41,8 +48,8 @@ const User = new mongoose.Schema(
       min: 18,
     },
     mainPhoto: {
-     type: String,
-     default: "https://geographyandyou.com/images/user-profile.png"
+      type: String,
+      default: "https://geographyandyou.com/images/user-profile.png",
     },
     desiredAgeRange: {
       min: { type: Number, min: 18 },
@@ -67,10 +74,11 @@ const User = new mongoose.Schema(
     },
     about: {
       type: String,
-      default: "This is a default about of the user!",
+      trim: true,
+      default: "Hey! I am using DateKarle",
     },
-    location:{
-      type:String
+    location: {
+      type: String,
     },
     skills: {
       type: [String],
@@ -84,7 +92,7 @@ const User = new mongoose.Schema(
 
 User.methods.generateToken = async function () {
   const user = this;
-  const token = await jwt.sign({ _id: user._id }, process.env.TOKEN_SECRET , {
+  const token = await jwt.sign({ _id: user._id }, process.env.TOKEN_SECRET, {
     expiresIn: "7d",
   });
   return token;
