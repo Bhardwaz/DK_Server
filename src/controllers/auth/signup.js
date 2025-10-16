@@ -7,7 +7,7 @@ async function signup(req, res) {
         validateSignUpData(req)         
         const { firstName, lastName, email, password, age, desiredAgeRange, gender, interestIn, mainPhoto, skills, location } = req.body
         
-        const isExist = User.findOne({ email })
+        const isExist = await User.findOne({ email })
         if(isExist) res.status(403).json({ message: "This email is already registered with us" })
 
         // encrypt the password

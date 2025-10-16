@@ -48,11 +48,11 @@ const validateSignUpData = (req) => {
   if (
     isNaN(minAge) ||
     isNaN(maxAge) ||
-    minAge > 18 ||
-    maxAge < 50 ||
+    minAge < 18 ||
+    maxAge > 50 ||
     minAge > maxAge
   ) {
-    throw new Error("Desired age range must be between 18 and 100, and min should be less than or equal to max.");
+    throw new Error("Desired age range must be between 18 and 50, and min should be less than or equal to max.");
   }
 
   // 6. Gender check (must be a valid string)
@@ -65,7 +65,7 @@ const validateSignUpData = (req) => {
   if (
     !Array.isArray(interestIn) ||
     interestIn.length === 0 ||
-    !interestIn.every((g) => allowedGenders.includes(g.toLowerCase()))
+    interestIn.every((g) => allowedGenders.includes(g.toLowerCase()))
   ) {
     throw new Error("InterestIn a valid gender is required to show you user who may also be interested in.");
   }
