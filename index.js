@@ -25,6 +25,8 @@ const logger = require("./logger.js")
 const morgan = require("morgan");
 const { connectingToDatabase } = require("./src/config/database.js");
 
+app.set('trust proxy', 1);
+
 const morganFormat = ":method :url :status :response-time ms";
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
