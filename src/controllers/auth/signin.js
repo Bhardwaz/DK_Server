@@ -18,6 +18,7 @@ async function signin(req, res){
              httpOnly:true,
              secure:true,
              sameSite:"none",
+             domain: ".datekarle.com",
              expires: new Date(Date.now() + 48 * 3600000),
            })
            
