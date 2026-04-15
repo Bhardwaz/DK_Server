@@ -35,11 +35,6 @@ class DatabaseConnection {
         throw new Error("Mongo db URI is not defined in env variables");
       }
       const connectionOptions = {
-<<<<<<< HEAD
-=======
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
->>>>>>> 48f5e45a62b3f78f3445ef51ef5a1ce8c36b0934
         maxPoolSize: 10,
         serverSelectionTimeoutMS: 5000,
         socketTimeoutMS: 45000,
