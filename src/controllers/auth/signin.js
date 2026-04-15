@@ -17,7 +17,7 @@ async function signin(req, res){
            res.cookie("token", token, {
              httpOnly:true,
              secure:true,
-             sameSite:"strict",
+             sameSite:"none",
              expires: new Date(Date.now() + 48 * 3600000),
            })
            
