@@ -61,7 +61,7 @@ app.use(
 
 const server = createServer(app);
 const corsOptions = {
-  origin: process.env.FRONTEND_SERVICE_ORIGIN,
+  origin: ['https://datekarle.com', 'https://www.datekarle.com'],
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS"],
   allowedHeaders: [
